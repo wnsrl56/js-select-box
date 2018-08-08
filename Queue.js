@@ -1,15 +1,18 @@
 Queue = function(){
     this.list = [];
+    this.index = 0;
 
     return {
         enqueue: (c) => {
             this.list.push(c);
         },
         dequeue: () => {
-            return this.list.shift();
+            let o = this.list[this.index];
+            this.index++;
+            return o;
         },
         isEmpty: () => {
-            return this.list.length === 0;
+            return this.list.length - this.index === 0;
         },
         getList: () => {
             return this.list;

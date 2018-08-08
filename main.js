@@ -2,7 +2,6 @@ window.onload = function main() {
     let target = document.getElementById('title');
     let popup = document.getElementById('popup');
     this.listEl = document.getElementById('list');
-    this.fragment = document.createDocumentFragment();
     this.countEl = document.getElementById('counter');
     this.elQueue = new this.Queue();
     this.data = [];
@@ -24,27 +23,30 @@ window.onload = function main() {
         }
         for(let i = 0; i < this.data.length; i++) {
             this.elQueue.enqueue({
-                execute: () => {   
-                    this.fragment.appendChild(this.createSelectBox(this.data[i]));                            
+                execute: (fragment) => {   
+                    fragment.appendChild(this.createSelectBox(this.data[i]));                            
                 },        
             });
         }
     };
 
-    let appendChildEl = () => {                          
-        for(let i = 0; i < 30; i ++) {
+    let appendChildEl = (deadLine) => {                                 
+        let fragment = document.createDocumentFragment();    
+        while(deadLine.timeRemaining() > 0 && !this.elQueue.isEmpty()) {
             const item = this.elQueue.dequeue();
-            if(item.execute) {
-                item.execute();
-            }           
-        }                            
-        requestAnimationFrame(() => {
-            this.list.appendChild(this.fragment);
-        });
+                if(item.execute) {
+                    item.execute(fragment);   
+                }           
+        }
 
-        if(this.elQueue.isEmpty()) {
-            console.timeEnd();
-            clearInterval(this.timeId);
+        requestAnimationFrame(() => {
+            this.list.appendChild(fragment);
+        });         
+
+        if(!this.elQueue.isEmpty()) {
+            requestIdleCallback(appendChildEl);        
+        }else {
+            console.timeEnd();            
         }
     };
 
@@ -56,9 +58,7 @@ window.onload = function main() {
         return el;
     }
     
-    this.timeId = setInterval(() => {      
-        appendChildEl();    
-    }, 0);
+    requestIdleCallback(appendChildEl);
 
     initData();
 };
